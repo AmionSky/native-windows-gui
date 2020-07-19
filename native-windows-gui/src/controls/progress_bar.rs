@@ -4,7 +4,7 @@ that indicates what the button does when the user selects it.
 */
 
 use winapi::um::winuser::{WS_VISIBLE, WS_DISABLED};
-use winapi::um::commctrl::{PBS_MARQUEE, PBS_VERTICAL};
+use winapi::um::commctrl::{PBS_MARQUEE, PBS_SMOOTH, PBS_VERTICAL};
 use crate::win32::window_helper as wh;
 use crate::win32::base_helper::check_hwnd;
 use crate::NwgError;
@@ -21,6 +21,7 @@ bitflags! {
         const DISABLED = WS_DISABLED;
         const VERTICAL = PBS_VERTICAL;
         const MARQUEE = PBS_MARQUEE;
+        const SMOOTH = PBS_SMOOTH;
     }
 }
 
@@ -200,6 +201,31 @@ impl ProgressBar {
 
         let handle = check_hwnd(&self.handle, NOT_BOUND, BAD_HANDLE);
         wh::send_message(handle, PBM_SETMARQUEE, enable as WPARAM, update_interval as LPARAM);
+        
+    }
+
+    pub fn add_style(&self, styles: ProgressBarFlags) {
+        use winapi::um::winuser::{GWL_STYLE, GetWindowLongPtrW, SetWindowLongPtrW};
+
+        let styles = styles.bits() as isize;
+
+        let handle = check_hwnd(&self.handle, NOT_BOUND, BAD_HANDLE);
+        unsafe {
+            let active_styles = GetWindowLongPtrW(handle, GWL_STYLE);
+            SetWindowLongPtrW(handle, GWL_STYLE, active_styles | styles);
+        }
+    }
+
+    pub fn remove_style(&self, styles: ProgressBarFlags) {
+        use winapi::um::winuser::{GWL_STYLE, GetWindowLongPtrW, SetWindowLongPtrW};
+
+        let styles = styles.bits() as isize;
+
+        let handle = check_hwnd(&self.handle, NOT_BOUND, BAD_HANDLE);
+        unsafe {
+            let active_styles = GetWindowLongPtrW(handle, GWL_STYLE);
+            SetWindowLongPtrW(handle, GWL_STYLE, active_styles & !styles);
+        }
     }
 
     /// Return true if the control currently has the keyboard focus
