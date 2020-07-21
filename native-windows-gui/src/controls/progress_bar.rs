@@ -205,27 +205,25 @@ impl ProgressBar {
     }
 
     pub fn add_style(&self, styles: ProgressBarFlags) {
-        use winapi::um::winuser::{GWL_STYLE, GetWindowLongPtrW, SetWindowLongPtrW};
+        use winapi::um::winuser::GWL_STYLE;
 
-        let styles = styles.bits() as isize;
+        let styles = styles.bits() as usize;
 
         let handle = check_hwnd(&self.handle, NOT_BOUND, BAD_HANDLE);
-        unsafe {
-            let active_styles = GetWindowLongPtrW(handle, GWL_STYLE);
-            SetWindowLongPtrW(handle, GWL_STYLE, active_styles | styles);
-        }
+        let active_styles = wh::get_window_long(handle, GWL_STYLE) as usize;
+        
+        wh::set_window_long(handle, GWL_STYLE, active_styles | styles);
     }
 
     pub fn remove_style(&self, styles: ProgressBarFlags) {
-        use winapi::um::winuser::{GWL_STYLE, GetWindowLongPtrW, SetWindowLongPtrW};
+        use winapi::um::winuser::GWL_STYLE;
 
-        let styles = styles.bits() as isize;
+        let styles = styles.bits() as usize;
 
         let handle = check_hwnd(&self.handle, NOT_BOUND, BAD_HANDLE);
-        unsafe {
-            let active_styles = GetWindowLongPtrW(handle, GWL_STYLE);
-            SetWindowLongPtrW(handle, GWL_STYLE, active_styles & !styles);
-        }
+        let active_styles = wh::get_window_long(handle, GWL_STYLE) as usize;
+
+        wh::set_window_long(handle, GWL_STYLE, active_styles & !styles);
     }
 
     /// Return true if the control currently has the keyboard focus
